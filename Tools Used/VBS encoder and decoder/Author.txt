@@ -1,2 +1,3 @@
-arnavsharma
-https://social.technet.microsoft.com/profile/arnavsharma/
+VBS encoder provided coursey of arnavsharmam, https://social.technet.microsoft.com/profile/arnavsharma/
+
+https://gallery.technet.microsoft.com/Encode-and-Decode-a-VB-a480d74c
