@@ -1,8 +1,17 @@
-# Trojan.BAT.PC-Optimizer-Pro
-A joke program that deletes system32 OR will clean up temp files.
+# What is Trojan.BAT.PC-Optimizer-Pro?
+As its name suggests, it is a trojan. Or at least, half of it is. 
+  - The "destructive" version will pretend to be a windows PC cleaning utility, scanning for unneeded files, and then prompting the user to delete them. This will result in the user will unwittingly deleting their system32 folder, as an internet meme xD.
+  - The "clean" version will actually help one delete unneeded files from their computer, such as cache of the three major browsers, log and error reporting files Windows makes, etc. For a full list, please see the source code. However, it will still do a fake scan(tree command) to make it look more official ¯\\\_(ツ)\_/¯.
+  
+# Requirements to use...
+This program uses MS-DOS batch programming, along with Visual Basic. On a said computer, the Windows Command Prompt(cmd.exe) must be present, along with wscript.exe or cscript.exe to run the Visual Basic.
+ 
+# What this repository contains...
+The repository has two folders:
+  1) The "'Source' code" folder which contains the source code of the project. This includes the two batch files which are the "cleaning" utilities, and the "Assets" folder, which contain the preliminary warning that will open before running the destructive version, and the two icons which will be injected in the "compiled" batch executables.
+  2) The "Compiled Project" folder which contains the compiled project. The two batch files have been "converted"(more like wrapped tbh) into executables. In the "Assets" folder, the warning which will pop up before running the destructive version of PC Optimizer Pro has been encoded into a .vbe file. The icons are still provided in the "Assets" folder. 
 
+# Tools to compile the project...
+***Disclaimer***: I **DID NOT** write these tools. The correct authors, credits, and reference links are availible to be read in the further readings of each folder in the "Tools-used-in-PC-Optimizer-Pro" repository. When referencing them or tools used in this repository, make sure to attribute correct credits to the correct authors, **NOT ME**.
+[Link to the tools repository.](https://github.com/CaptainChicky/Tools-used-in-PC-Optimizer-Pro)
 
-I WILL ADD MORE INFORMATION IN THE FUTURE. CURRENTLY DONT HAVE TIME.
-(reminder: add tools used)
-
-[Test](https://github.com/CaptainChicky/Tools-used-in-PC-Optimizer-Pro)
