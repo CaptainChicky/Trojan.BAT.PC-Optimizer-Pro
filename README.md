@@ -15,6 +15,7 @@ The repository has two folders:
 
 # Tools to compile the project...
 ***Disclaimer***: I **DID NOT** write these tools. The correct authors, credits, and reference links are availible to be read in the further readings of each folder in the "Tools-used-in-PC-Optimizer-Pro" repository. When referencing them or tools used in this repository, make sure to attribute correct credits to the correct authors, **NOT ME**.
+
 [Link to the tools repository.](https://github.com/CaptainChicky/Tools-used-in-PC-Optimizer-Pro)
 
 # Disclaimer!!!
