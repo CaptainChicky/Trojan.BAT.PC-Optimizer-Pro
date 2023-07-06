@@ -2,6 +2,8 @@
 As its name suggests, it is a batchfile trojan, pretending to be something while doing something else. It was my 2020 attempt at being funny after reading a lot about the funny "delete System32" joke and learning some batchfile.
 
 The program will pretend to be a windows PC cleaning utility, scanning for unneeded files, and then prompting the user to delete them. This will result in the user will unwittingly deleting their System32 folder, as an internet meme xD.
+
+<sub>Also tbh this stupid project took way too much testing on VMs to finalize lol. And I also forgot my Win10 VM password so that is very nice 🙃</sub>
   
 # Usage
 To use the program, simply download the release, or repo. If you downloaded the repo, you have to "compile" the project yourself (you technically don't need to, but for pure aesthetic purposes, please do lol). This is detailed below. If you downloaded the repease, simply unzip and run the executable, allowing it administrator permissions when it requests it.
