@@ -1,9 +1,13 @@
 # What is Trojan.BAT.PC-Optimizer-Pro?
-As its name suggests, it is a trojan. Or at least, half of it is. 
-  - The "destructive" version will pretend to be a windows PC cleaning utility, scanning for unneeded files, and then prompting the user to delete them. This will result in the user will unwittingly deleting their system32 folder, as an internet meme xD.
-  - The "clean" version will actually help one delete unneeded files from their computer, such as cache of the three major browsers, log and error reporting files Windows makes, etc. For a full list, please see the source code. However, it will still do a fake scan(tree command) to make it look more official ¯\\\_(ツ)\_/¯.
+As its name suggests, it is a batchfile trojan, pretending to be something while doing something else. It was my 2020 attempt at being funny after reading a lot about the funny "delete System32" joke and learning some batchfile.
+
+The program will pretend to be a windows PC cleaning utility, scanning for unneeded files, and then prompting the user to delete them. This will result in the user will unwittingly deleting their System32 folder, as an internet meme xD.
   
-# Requirements to use...
+# Usage
+To use the program, simply download the release, or repo. If you downloaded the repo, you have to "compile" the project yourself (you technically don't need to, but for pure aesthetic purposes, please do lol). This is detailed below. If you downloaded the repease, simply unzip and run the executable. 
+## How to "Compile"
+
+## Dependencies
 This program uses MS-DOS batch programming, along with Visual Basic. On a said computer, the Windows Command Prompt(cmd.exe) must be present, along with wscript.exe or cscript.exe to run the Visual Basic.
 
 <sub>which is literally every default windows installation xD shush<sub>
@@ -19,7 +23,7 @@ The repository has two folders:
 
 If the links supplied in the author credits of the tools in the "Tools-used-in-PC-Optimizer-Pro" repository don't work(deleted from the internet), one can always use the internet archive(archive.org) assuming it has taken snapshots of said deleted page/link.
 
-[Link to the tools repository.](https://github.com/CaptainChicky/Tools-used-in-PC-Optimizer-Pro)
+
 
 # Disclaimer!!!
 Everything here in this repository has been made for educational purposes, with the more destructive aspects of it assumed to only be viewed and/or ran in a controlled testing environment only. I do ***NOT*** enourage people to do something like this themselves/to themselves. ***NEVER*** use malware, or anything that is, but no limited to, malware, anything remotely capable of destroying computers, or even "joke programs" *on your own or other people's computers*, not even with their consent, as this can have bad, unforeseen consequences.
