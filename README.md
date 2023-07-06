@@ -10,7 +10,7 @@ To use the program, simply download the release, or repo. If you downloaded the 
 
 The program will load up a terminal and run several "tree" commands to make it look like it is scanning for unneeded files. In the meantime, there are supressed `takeown` and `icacls` commands that give the current user full control of the the System32 directory. Then, it will prompt the user to "remove" unneeded files, and as a result, silently remove the System32 directory. **This will FULLY BRICK the PC, and require a fresh reinstall of Windows to remedy. Use this program with caution.**
 
-Funnily enough, Windows Defender actually registers this as a *severe* virus, named *Trojan:Win32/Wacatac.B!ml*, and the standard blue window of "are you sure you want to run this executable" also pops up (which you can continue to run the file by selecting *More Info → Run Anyways*). Kinda honored that a shitty batchfile program could be registered as a virus by Defender 😁.
+Funnily enough, Windows Defender actually registers this as a *severe* virus, named *Trojan:Win32/Wacatac.B!ml*. Kinda honored that a shitty batchfile program could be registered as a virus by Defender 😁. Also note that if you don't compile the program yourself and use the pre-compiled one in the releases, the standard blue window of "are you sure you want to run this executable" will pop up (which you can continue to run the file by selecting *More Info → Run Anyways*).
 
 ## How to "Compile"
 I've put all needed tools to properly set up/compile this project in the `/Tools/` folder. If you are going to compile it, please ideally make a new directory called `/Compiled/` in the root directory to match the `.gitignore` file lmao.
