@@ -5,6 +5,21 @@ The program will pretend to be a windows PC cleaning utility, scanning for unnee
   
 # Usage
 To use the program, simply download the release, or repo. If you downloaded the repo, you have to "compile" the project yourself (you technically don't need to, but for pure aesthetic purposes, please do lol). This is detailed below. If you downloaded the repease, simply unzip and run the executable. 
+
+The program will load up a terminal and run several "tree" commands to make it look like it is scanning for unneeded files. In the meantime, there are supressed `takeown` and `icacls` commands that give the current user full control
+
+
+
+  <!-- Added requestedExecutionLevel for administrative privileges -->
+  <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
+    <security>
+      <requestedPrivileges>
+        <requestedExecutionLevel level="requireAdministrator" />
+      </requestedPrivileges>
+    </security>
+  </trustInfo>
+
+  Trojan:Win32/Wacatac.B!ml
 ## How to "Compile"
 
 ## Dependencies
