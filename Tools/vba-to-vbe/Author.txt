@@ -1,0 +1,5 @@
+VBS encoder provided courtsey of arnavsharmam, https://social.technet.microsoft.com/profile/arnavsharma/
+
+https://gallery.technet.microsoft.com/Encode-and-Decode-a-VB-a480d74c
+
+
