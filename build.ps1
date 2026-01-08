@@ -42,6 +42,7 @@ if (Get-Module -ListAvailable ps2exe) {
 }
 
 Import-Module ps2exe
+pause
 
 # ============================================================================
 # STEP 2: Prompt for VBS or VBE
@@ -59,6 +60,7 @@ if (-not (Test-Path $warningFile)) {
 }
 
 Write-Host "Using $warningFile"
+pause
 
 # ============================================================================
 # STEP 3: Inject warning into script
@@ -73,11 +75,15 @@ $pattern = "(?s)\`$vbsContent = @'.*?'@"
 $replacement = "`$vbsContent = @'`r`n$warningContent`r`n'@"
 $newScript = $scriptContent -replace $pattern, $replacement
 
-$tempScript = ".\PC-Optimizer-Pro-TEMP.ps1"
+# Use absolute path for temp file
+$tempScript = Join-Path $PWD "PC-Optimizer-Pro-TEMP.ps1"
 $utf8BOM = New-Object System.Text.UTF8Encoding $true
 [System.IO.File]::WriteAllText($tempScript, $newScript, $utf8BOM)
 
 Write-Host "Warning injected"
+Write-Host "[DEBUG]: Temp file path: $tempScript"
+Write-Host "[DEBUG]: Temp file exists: $(Test-Path $tempScript)"
+pause
 
 # ============================================================================
 # STEP 4: Convert to EXE with icon
@@ -85,13 +91,13 @@ Write-Host "Warning injected"
 Write-Host ""
 Write-Host "[4/5] Converting to EXE..."
 
-$iconPath = ".\Assets\computer.ico"
+$iconPath = Join-Path $PWD "Assets\computer.ico"
 if (-not (Test-Path $iconPath)) {
     Write-Host "WARNING: Icon not found at $iconPath"
     $iconPath = $null
 }
 
-$exePath = ".\PC Optimizer Pro.exe"
+$exePath = Join-Path $PWD "PC Optimizer Pro.exe"
 
 if ($iconPath) {
     Invoke-ps2exe -inputFile $tempScript -outputFile $exePath -iconFile $iconPath -requireAdmin
@@ -100,6 +106,7 @@ if ($iconPath) {
 }
 
 Write-Host "EXE created: $exePath"
+pause
 
 # ============================================================================
 # STEP 5: Clean up temp file
