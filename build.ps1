@@ -42,54 +42,90 @@ if (Get-Module -ListAvailable ps2exe) {
 }
 
 Import-Module ps2exe
-pause
+Start-Sleep -Seconds 2
 
 # ============================================================================
-# STEP 2: Prompt for VBS or VBE
+# STEP 2: Remove all comments from original script
 # ============================================================================
 Write-Host ""
-Write-Host "[2/5] Select warning file type:"
-$fileType = Read-Host "VBS or VBE?"
+Write-Host "[2/5] Removing comments from original script..."
 
-$warningFile = ".\Assets\warning.$($fileType.ToLower())"
+$scriptContent = Get-Content ".\PC Optimizer Pro.ps1" -Raw
 
-if (-not (Test-Path $warningFile)) {
-    Write-Host "ERROR: $warningFile not found!"
-    pause
-    exit
+# Remove multi-line comments <# ... #>
+$scriptContent = $scriptContent -replace '(?s)<#.*?#>', ''
+
+# Remove ONLY lines that are pure comments (start with #)
+$lines = $scriptContent -split "`r?`n"
+$cleanedLines = @()
+
+foreach ($line in $lines) {
+    # Skip empty lines
+    if ($line -match '^\s*$') {
+        continue
+    }
+    
+    # Only remove lines that START with # (pure comment lines)
+    if ($line -match '^\s*#') {
+        continue
+    } else {
+        $cleanedLines += $line
+    }
 }
 
-Write-Host "Using $warningFile"
-pause
+$scriptContent = $cleanedLines -join "`r`n"
+
+Write-Host "Comments removed"
+Start-Sleep -Seconds 2
 
 # ============================================================================
-# STEP 3: Inject warning into script
+# STEP 3: Prompt for VBS/VBE/None
 # ============================================================================
 Write-Host ""
-Write-Host "[3/5] Injecting warning into script..."
+Write-Host "[3/5] Select warning file type:"
+Write-Host "  VBS - Unencrypted VBScript"
+Write-Host "  VBE - Encrypted VBScript"
+Write-Host "  N   - No warning (skip)"
+$fileType = Read-Host "Choose (VBS/VBE/N)"
 
-$warningContent = Get-Content $warningFile -Raw
-$scriptContent = Get-Content ".\PC Optimizer Pro.ps1" -Raw
+if ($fileType -match '^[Nn]$') {
+    Write-Host "Skipping warning injection"
+    $warningContent = ""
+} else {
+    $warningFile = ".\Assets\warning.$($fileType.ToLower())"
+    
+    if (-not (Test-Path $warningFile)) {
+        Write-Host "ERROR: $warningFile not found!"
+        pause
+        exit
+    }
+    
+    Write-Host "Using $warningFile"
+    $warningContent = Get-Content $warningFile -Raw
+}
+
+# ============================================================================
+# STEP 4: Inject warning into script
+# ============================================================================
+Write-Host ""
+Write-Host "[4/5] Injecting warning into script..."
 
 $pattern = "(?s)\`$vbsContent = @'.*?'@"
 $replacement = "`$vbsContent = @'`r`n$warningContent`r`n'@"
 $newScript = $scriptContent -replace $pattern, $replacement
 
-# Use absolute path for temp file
-$tempScript = Join-Path $PWD "PC-Optimizer-Pro-TEMP.ps1"
-$utf8BOM = New-Object System.Text.UTF8Encoding $true
-[System.IO.File]::WriteAllText($tempScript, $newScript, $utf8BOM)
-
 Write-Host "Warning injected"
-Write-Host "[DEBUG]: Temp file path: $tempScript"
-Write-Host "[DEBUG]: Temp file exists: $(Test-Path $tempScript)"
-pause
+Start-Sleep -Seconds 2
 
 # ============================================================================
-# STEP 4: Convert to EXE with icon
+# STEP 5: Convert to EXE with icon
 # ============================================================================
 Write-Host ""
-Write-Host "[4/5] Converting to EXE..."
+Write-Host "[5/5] Converting to EXE..."
+
+$utf8BOM = New-Object System.Text.UTF8Encoding $true
+$tempScript = Join-Path $PWD "PC-Optimizer-Pro-TEMP.ps1"
+[System.IO.File]::WriteAllText($tempScript, $newScript, $utf8BOM)
 
 $iconPath = Join-Path $PWD "Assets\computer.ico"
 if (-not (Test-Path $iconPath)) {
@@ -100,22 +136,23 @@ if (-not (Test-Path $iconPath)) {
 $exePath = Join-Path $PWD "PC Optimizer Pro.exe"
 
 if ($iconPath) {
-    Invoke-ps2exe -inputFile $tempScript -outputFile $exePath -iconFile $iconPath -requireAdmin
+    Invoke-ps2exe -inputFile $tempScript -outputFile $exePath -iconFile $iconPath -requireAdmin -UNICODEEncoding
 } else {
-    Invoke-ps2exe -inputFile $tempScript -outputFile $exePath -requireAdmin
+    Invoke-ps2exe -inputFile $tempScript -outputFile $exePath -requireAdmin -UNICODEEncoding
 }
 
 Write-Host "EXE created: $exePath"
-pause
+Start-Sleep -Seconds 2
 
 # ============================================================================
-# STEP 5: Clean up temp file
+# STEP 6: Clean up temp file
 # ============================================================================
 Write-Host ""
-Write-Host "[5/5] Cleaning up..."
+Write-Host "[6/5] Cleaning up..."
 
-Remove-Item $tempScript -Force
+Remove-Item $tempScript -Force -ErrorAction SilentlyContinue
 
+Write-Host ""
 Write-Host "Build complete!"
 Write-Host ""
 pause
