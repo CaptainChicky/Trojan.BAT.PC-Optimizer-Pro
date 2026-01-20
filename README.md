@@ -60,7 +60,7 @@ We note that `del` only deletes files, not directories, which explains why 4k+ d
 | Standalone PWsh v7 | 1,325 | 942,955,252 (~943 MB) | 263 | 65.92% |
 | Native PWsh 5.1 | 1,410 | 937,427,002 (~937 MB) | 268 | 66.12% |
 
-This is much better compared to `del`. And this time as expected, standalone powershell performed better.
+This is much better compared to `del`. And this time still unexpectedly, standalone powershell performed worse.
 
 #### Command 3: `Remove-Item`
 | Environment | Files Remaining | Bytes Remaining | Dirs Remaining | Deletion Rate (bytes) |
